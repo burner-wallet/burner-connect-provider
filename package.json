@@ -1,0 +1,17 @@
+{
+  "name": "@burner-wallet/burner-connect-provider",
+  "version": "0.1.0",
+  "description": "Authenticate messages using a Burner Wallet",
+  "main": "index.js",
+  "author": "David Mihal <david@dmihal.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.7.4",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  }
+}
