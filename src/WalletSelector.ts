@@ -15,10 +15,11 @@ function setHoverListStyle(item: HTMLLIElement) {
 `;
 }
 
-function populateList(wallets: any[], list: HTMLUListElement, resolve: (wallet: any) => void) {
+function populateList(wallets: any[], list: HTMLUListElement, onClick: (wallet: any) => void) {
   for (const wallet of wallets) {
     const item = document.createElement('li');
-    item.addEventListener('click', () => resolve(wallet.origin));
+    item.innerHTML = `${wallet.name} (${wallet.origin})`;
+    item.addEventListener('click', () => onClick(wallet));
     list.appendChild(item);
   }
 }
@@ -54,16 +55,31 @@ export default function showWalletSelector(wallets: any[]) {
 
     const header = document.createElement('h1');
     header.innerHTML = 'Select a Burner Wallet to connect to';
-    container.appendChild(header);
+    panel.appendChild(header);
 
-    const list = document.createElement('ul');
-    populateList(wallets, list, (wallet: any) => resolve(wallet));
-    container.appendChild(list);
+    if (wallets.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.innerHTML = '<h2>No Burner Wallets found</h2>'
+        + '<div><a href="https://burnerconnect.burnerfactory.com/" target="_blank">Try out a wallet</a></div>';
+      panel.appendChild(emptyState);
+    } else {
+      const list = document.createElement('ul');
+      populateList(wallets, list, (wallet: any) => {
+        document.body.removeChild(container!);
+        container = null;
+        resolve(wallet);
+      });
+      panel.appendChild(list);
+    }
 
     const cancel = document.createElement('button');
     cancel.innerHTML = 'Cancel';
-    cancel.addEventListener('click', reject);
-    container.appendChild(cancel);
+    cancel.addEventListener('click', () => {
+      document.body.removeChild(container!);
+      container = null;
+      reject();
+    });
+    panel.appendChild(cancel);
 
     document.body.appendChild(container);
   });
