@@ -40,6 +40,8 @@ export default function showWalletSelector(wallets: any[]) {
   left: 0;
   right: 0;
   background: rgba(200, 200, 200, 0.5);
+  z-index: 100;
+  align-items: center;
 `;
 
     const panel = document.createElement('div');
@@ -50,6 +52,7 @@ export default function showWalletSelector(wallets: any[]) {
   margin: 8px;
   border-radius: 8px;
   background: #ffffff;
+  max-width: 500px;
 `;
     container.appendChild(panel);
 

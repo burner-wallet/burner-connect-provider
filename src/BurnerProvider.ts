@@ -5,17 +5,26 @@ import showWalletSelector from './WalletSelector';
 
 const id = () => (Math.random() * 100000000) | 0;
 
+interface ConstructorProps {
+  hubUrl?: string;
+  defaultNetwork?: string;
+}
+
 export default class BurnerProvider extends EventEmitter {
   public isBurnerProvider = true;
   public hub: HubBridge;
   public connected = false;
   public walletBridge: WalletBridge | null = null;
   public wallet: any = null;
-  public network = '1';
+  public network: string;
   private _nextJsonRpcId = 0;
 
-  constructor(hubUrl = 'https://burnerconnect.xyz/') {
+  constructor({
+    hubUrl = 'https://burnerconnect.xyz/',
+    defaultNetwork = '1',
+  }: ConstructorProps = {}) {
     super();
+    this.network = defaultNetwork;
     this.hub = new HubBridge(hubUrl);
   }
 
