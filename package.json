@@ -10,6 +10,7 @@
     "build": "webpack"
   },
   "devDependencies": {
+    "@types/node": "^13.5.1",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.4",
     "webpack": "^4.41.5",
