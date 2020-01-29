@@ -1,6 +1,6 @@
 {
   "name": "@burner-wallet/burner-connect-provider",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Authenticate messages using a Burner Wallet",
   "main": "dist/bundle.js",
   "types": "build/BurnerProvider.d.ts",

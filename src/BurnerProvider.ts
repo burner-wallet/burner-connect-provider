@@ -6,6 +6,7 @@ import showWalletSelector from './WalletSelector';
 const id = () => (Math.random() * 100000000) | 0;
 
 export default class BurnerProvider extends EventEmitter {
+  public isBurnerProvider = true;
   public hub: HubBridge;
   public connected = false;
   public walletBridge: WalletBridge | null = null;
