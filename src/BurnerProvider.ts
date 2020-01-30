@@ -27,9 +27,11 @@ export default class BurnerProvider extends EventEmitter {
     this.network = defaultNetwork;
     this.hub = new HubBridge(hubUrl);
 
+    // @ts-ignore
+    this.on = null; // Override this, otherwise Web3 will try to use subscriptions
+
     window.addEventListener('message', (event: any) => {
       if (this.walletBridge && event.origin === this.walletBridge.origin && event.data.message) {
-        console.log(event);
         if (event.data.message === 'accountsChanged') {
           this.emit('accountsChanged', event.data.accounts);
         }
@@ -99,7 +101,7 @@ export default class BurnerProvider extends EventEmitter {
     }
 
     this.getBridge().send({ network: this.network, ...payload })
-      .then((result: any) => cb(null, result))
+      .then(({ result }: any) => cb(null, { id: payload.id, jsonrpc: '2.0', result }))
       .catch((error: any) => cb(error));
   }
 
