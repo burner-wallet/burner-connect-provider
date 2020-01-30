@@ -26,11 +26,29 @@ export default class BurnerProvider extends EventEmitter {
     super();
     this.network = defaultNetwork;
     this.hub = new HubBridge(hubUrl);
+
+    window.addEventListener('message', (event: any) => {
+      if (this.walletBridge && event.origin === this.walletBridge.origin && event.data.message) {
+        console.log(event);
+        if (event.data.message === 'accountsChanged') {
+          this.emit('accountsChanged', event.data.accounts);
+        }
+      }
+    });
   }
 
   setNetwork(network: string) {
-    this.network = network;
-    this.emit('chainChanged', network);
+    if (network !== this.network) {
+      this.network = network;
+      this.emit('chainChanged', network);
+    }
+  }
+
+  async getAssets() {
+    const bridge = this.getBridge();
+    await bridge.ensureIFrame();
+    const assets = await bridge.sendCommand('getAssets');
+    return assets;
   }
 
   enable() {
@@ -41,7 +59,7 @@ export default class BurnerProvider extends EventEmitter {
     return this.hub.getWallets()
       .then((wallets: any[]) => this.showPrompt(wallets))
       .then(async () => {
-        const accounts = await this.walletBridge!.send({
+        const accounts = await this.getBridge().send({
           id: id(),
           method: 'eth_accounts',
           network: this.network,
@@ -72,18 +90,23 @@ export default class BurnerProvider extends EventEmitter {
     const id = this._nextJsonRpcId++;
     const payload = { jsonrpc: '2.0', id, method, params };
 
-    return this.walletBridge!.send({ network: this.network, ...payload });
+    return this.getBridge().send({ network: this.network, ...payload });
   }
-
-
 
   sendAsync(payload: any, cb: any) {
     if (!this.connected) {
       throw new Error('BurnerConnect Provider is not connected');
     }
 
-    this.walletBridge!.send({ network: this.network, ...payload })
+    this.getBridge().send({ network: this.network, ...payload })
       .then((result: any) => cb(null, result))
       .catch((error: any) => cb(error));
+  }
+
+  getBridge(): WalletBridge {
+    if (!this.walletBridge) {
+      throw new Error(`BurnerConnect is not yet connected`);
+    }
+    return this.walletBridge;
   }
 }

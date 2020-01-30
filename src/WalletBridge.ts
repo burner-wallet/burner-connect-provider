@@ -1,10 +1,10 @@
 export default class HubBridge {
+  public origin: string;
   private iframe: any = null;
-  private url: string;
   private msgId = 0;
 
-  constructor(url: string) {
-    this.url = url;
+  constructor(origin: string) {
+    this.origin = origin;
   }
 
   async send(payload: any) {
@@ -20,7 +20,7 @@ export default class HubBridge {
 
     return new Promise((resolve) => {
       this.iframe = document.createElement('iframe');
-      this.iframe.src = `${this.url}/burnerconnect.html`;
+      this.iframe.src = `${this.origin}/burnerconnect.html`;
       this.iframe.style.cssText = 'height:0; width:0; border:none';
       this.iframe.addEventListener('load', () => resolve());
 
@@ -28,7 +28,7 @@ export default class HubBridge {
     });
   }
 
-  sendCommand(command: string, params: any) {
+  sendCommand(command: string, params?: any) {
     return new Promise((resolve) => {
       const id = this.msgId++;
       const listener = (e: any) => {
@@ -38,7 +38,7 @@ export default class HubBridge {
         }
       }
       window.addEventListener('message', listener);
-      this.iframe.contentWindow.postMessage({ command, id, params }, this.url);
+      this.iframe.contentWindow.postMessage({ command, id, params }, this.origin);
     });
   }
 }
