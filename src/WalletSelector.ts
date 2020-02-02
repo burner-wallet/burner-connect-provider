@@ -5,24 +5,29 @@ function setNormalListStyle(item: HTMLLIElement) {
     background: #FFFFFF;
     border-bottom: solid 1px #DDDDDD;
     padding: 4px 0;
-`;
+    list-style: none;
+  `;
 }
 
 function setHoverListStyle(item: HTMLLIElement) {
   item.style.cssText = `
     background: #EEEEEE;
+    border-bottom: solid 1px #DDDDDD;
     cursor: pointer;
-`;
+    padding: 4px 0;
+    list-style: none;
+  `;
 }
 
 function populateList(wallets: any[], list: HTMLUListElement, onClick: (wallet: any) => void) {
   for (const wallet of wallets) {
     const item = document.createElement('li');
-    item.innerHTML = `${wallet.name} (${wallet.origin})`;
+    item.innerHTML = `<div>${wallet.name}</div><div style="color: #555555">${wallet.origin}</div>`;
+
     item.addEventListener('click', () => onClick(wallet));
     setNormalListStyle(item);
-    item.addEventListener('mouseOver', (e: any) => setHoverListStyle(e.target));
-    item.addEventListener('mouseOut', (e: any) => setNormalListStyle(e.target));
+    item.addEventListener('mouseover', (e: any) => setHoverListStyle(e.currentTarget));
+    item.addEventListener('mouseout', (e: any) => setNormalListStyle(e.currentTarget));
     list.appendChild(item);
   }
 }
@@ -70,7 +75,9 @@ export default class WalletSelector {
   }
 
   showSelector(wallets: any[]) {
-    return showWalletSelector(wallets, this.getPanel());
+    const panel = this.getPanel();
+    panel.innerHTML = '';
+    return showWalletSelector(wallets, panel);
   }
 
   showConnecting(wallet: string) {
@@ -98,12 +105,14 @@ function showWalletSelector(wallets: any[], panel: any): Promise<any> {
       panel.appendChild(emptyState);
     } else {
       const list = document.createElement('ul');
+      list.style.padding = '0';
       populateList(wallets, list, (wallet: any) => resolve(wallet));
       panel.appendChild(list);
     }
 
     const cancel = document.createElement('button');
     cancel.innerHTML = 'Cancel';
+    cancel.style.fontSize = '14px';
     cancel.addEventListener('click', () => reject());
     panel.appendChild(cancel);
   });
