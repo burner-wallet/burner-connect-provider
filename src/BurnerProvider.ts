@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import HubBridge from './HubBridge';
 import WalletBridge from './WalletBridge';
-import showWalletSelector from './WalletSelector';
+import WalletSelector from './WalletSelector';
 
 const id = () => (Math.random() * 100000000) | 0;
 
@@ -18,6 +18,7 @@ export default class BurnerProvider extends EventEmitter {
   public wallet: any = null;
   public network: string;
   private _nextJsonRpcId = 0;
+  private walletSelector = new WalletSelector();
 
   constructor({
     hubUrl = 'https://burnerconnect.xyz/',
@@ -53,31 +54,30 @@ export default class BurnerProvider extends EventEmitter {
     return assets;
   }
 
-  enable() {
+  async enable() {
     if (this.connected) {
       return Promise.resolve();
     }
 
-    return this.hub.getWallets()
-      .then((wallets: any[]) => this.showPrompt(wallets))
-      .then(async () => {
-        const accounts = await this.getBridge().send({
-          id: id(),
-          method: 'eth_accounts',
-          network: this.network,
-        });
-        this.connected = true;
-        this.emit('connect');
-      })
-      .catch(() => null);
+    this.walletSelector.showStarting();
+    const wallets = await this.hub.getWallets();
+    await this.showPrompt(wallets);
+    await this.getBridge().send({
+      id: id(),
+      method: 'eth_accounts',
+      network: this.network,
+    });
+
+    this.walletSelector.close();
+    this.connected = true;
+    this.emit('connect');
   }
 
-  showPrompt(wallets: any[]) {
-    return showWalletSelector(wallets)
-      .then((wallet: any) => {
-        this.wallet = wallet;
-        this.walletBridge = new WalletBridge(wallet.origin);
-      });
+  async showPrompt(wallets: any[]) {
+    const wallet = await this.walletSelector.showSelector(wallets)
+    this.walletSelector.showConnecting(wallet.name);
+    this.wallet = wallet;
+    this.walletBridge = new WalletBridge(wallet.origin);
   }
 
   send(method: string, params: any[] = []) {
