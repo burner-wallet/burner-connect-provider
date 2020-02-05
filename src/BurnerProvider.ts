@@ -76,8 +76,10 @@ export default class BurnerProvider extends EventEmitter {
 
         this.connected = true;
         this.emit('connect');
+        resolve();
       } catch (e) {
         console.error(e);
+        reject();
       } finally {
         this.walletSelector.close();
       }

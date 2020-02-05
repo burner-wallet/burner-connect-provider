@@ -26,6 +26,7 @@ export default class HubBridge {
     this.iframe = document.createElement('iframe');
     this.iframe.src = `${this.url}/selector.html`;
     this.iframe.style.border = 'none';
+    this.iframe.sandbox = 'allow-storage-access-by-user-activation allow-scripts allow-same-origin';
 
     window.addEventListener('message', (e: any) => {
       console.log(e.data);

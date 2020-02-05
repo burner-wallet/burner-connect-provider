@@ -23,6 +23,7 @@ export default class HubBridge {
       this.iframe.src = `${this.origin}/burnerconnect.html`;
       this.iframe.style.cssText = 'height:0; width:0; border:none';
       this.iframe.addEventListener('load', () => resolve());
+      this.iframe.sandbox = 'allow-storage-access-by-user-activation allow-scripts allow-same-origin';
 
       document.body.appendChild(this.iframe);
     });
