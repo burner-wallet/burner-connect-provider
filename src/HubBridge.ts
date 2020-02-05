@@ -22,9 +22,15 @@ export default class HubBridge {
     });
   }
 
-  getFrame() {
+  getFrame(defaultWallets?: any[]) {
     this.iframe = document.createElement('iframe');
-    this.iframe.src = `${this.url}/selector.html`;
+
+    let url = `${this.url}/selector.html`;
+    if (defaultWallets && defaultWallets.length > 0) {
+      url += `#wallets=${encodeURIComponent(JSON.stringify(defaultWallets))}`;
+    }
+    this.iframe.src = url;
+
     this.iframe.style.border = 'none';
     this.iframe.sandbox = 'allow-storage-access-by-user-activation allow-scripts allow-same-origin';
 

@@ -1,3 +1,4 @@
+import { Wallet } from './BurnerProvider';
 import HubBridge from './HubBridge';
 
 let container: HTMLDivElement | null = null;
@@ -90,11 +91,19 @@ export default class WalletSelector {
     panel.innerHTML = '<h2>Fetching your Burner Wallets...</h2>';
   }
 
-  showSelector(bridge: HubBridge) {
+  showSelector(bridge: HubBridge, defaultWallets?: Wallet[]) {
     const panel = this.getPanel();
-    panel.appendChild(bridge.getFrame());
+    panel.appendChild(bridge.getFrame(defaultWallets));
 
     return bridge.awaitSelection();
+  }
+
+  showFrame(iframe: any) {
+    const panel = this.getPanel();
+    panel.innerHTML = '';
+    iframe.style.height = '100px';
+    iframe.style.width = '100px';
+    panel.appendChild(iframe);
   }
 
   showConnecting(wallet: string) {
