@@ -55,12 +55,16 @@ export default class HubBridge {
   }
 
   send(command: string) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const id = this.msgId++;
       const listener = (e: any) => {
         if (e.data.id === id) {
           window.removeEventListener('message', listener);
-          resolve(e.data.response);
+          if (e.data.error) {
+            reject(e.data.error);
+          } else {
+            resolve(e.data.response);
+          }
         }
       }
       window.addEventListener('message', listener);
