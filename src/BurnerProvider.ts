@@ -54,30 +54,38 @@ export default class BurnerProvider extends EventEmitter {
     return assets;
   }
 
-  async enable() {
+  enable() {
     if (this.connected) {
       return Promise.resolve();
     }
 
-    try {
-      this.walletSelector.showStarting();
-      const wallets = await this.hub.getWallets();
-      await this.showPrompt(wallets);
-      await this.getBridge().send({
-        id: id(),
-        method: 'eth_accounts',
-        network: this.network,
+    return new Promise(async (resolve, reject) => {
+      this.walletSelector.onClose(() => {
+        this.walletSelector.close();
+        reject();
       });
 
-      this.connected = true;
-      this.emit('connect');
-    } finally {
-      this.walletSelector.close();
-    }
+      try {
+        this.walletSelector.showStarting();
+        await this.showPrompt();
+        await this.getBridge().send({
+          id: id(),
+          method: 'eth_accounts',
+          network: this.network,
+        });
+
+        this.connected = true;
+        this.emit('connect');
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.walletSelector.close();
+      }
+    });
   }
 
-  async showPrompt(wallets: any[]) {
-    const wallet = await this.walletSelector.showSelector(wallets);
+  async showPrompt() {
+    const wallet = await this.walletSelector.showSelector(this.hub);
     this.walletSelector.showConnecting(wallet.name);
     this.wallet = wallet;
     this.walletBridge = new WalletBridge(wallet.origin);

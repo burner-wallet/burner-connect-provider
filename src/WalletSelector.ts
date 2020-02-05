@@ -1,3 +1,5 @@
+import HubBridge from './HubBridge';
+
 let container: HTMLDivElement | null = null;
 
 function setNormalListStyle(item: HTMLLIElement) {
@@ -35,6 +37,7 @@ function populateList(wallets: any[], list: HTMLUListElement, onClick: (wallet: 
 export default class WalletSelector {
   private container: any;
   private panel: any;
+  private closeListeners: any[] = [];
 
   getPanel() {
     if (!this.container) {
@@ -54,8 +57,8 @@ export default class WalletSelector {
       document.body.appendChild(this.container);
     }
     if (!this.panel) {
-      this.panel = document.createElement('div');
-      this.panel.style.cssText = `
+      const outer = document.createElement('div');
+      outer.style.cssText = `
         display: flex;
         flex-direction: column;
         padding: 8px;
@@ -64,7 +67,20 @@ export default class WalletSelector {
         background: #ffffff;
         max-width: 500px;
       `;
-      this.container.appendChild(this.panel);
+
+      const close = document.createElement('button');
+      close.innerText = 'x';
+      close.style.cssText = `
+        margin-left: auto;
+      `;
+      close.addEventListener('click', () => this.closeListeners.forEach(listener => listener()));
+      outer.appendChild(close);
+
+      const content = document.createElement('div');
+      outer.appendChild(content);
+
+      this.panel = content;
+      this.container.appendChild(outer);
     }
     return this.panel;
   }
@@ -74,10 +90,11 @@ export default class WalletSelector {
     panel.innerHTML = '<h2>Fetching your Burner Wallets...</h2>';
   }
 
-  showSelector(wallets: any[]) {
+  showSelector(bridge: HubBridge) {
     const panel = this.getPanel();
-    panel.innerHTML = '';
-    return showWalletSelector(wallets, panel);
+    panel.appendChild(bridge.getFrame());
+
+    return bridge.awaitSelection();
   }
 
   showConnecting(wallet: string) {
@@ -90,30 +107,8 @@ export default class WalletSelector {
     this.container = null;
     this.panel = null;
   }
-}
 
-function showWalletSelector(wallets: any[], panel: any): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const header = document.createElement('h1');
-    header.innerHTML = 'Select a Burner Wallet to connect to';
-    panel.appendChild(header);
-
-    if (wallets.length === 0) {
-      const emptyState = document.createElement('div');
-      emptyState.innerHTML = '<h2>No Burner Wallets found</h2>'
-        + '<div><a href="https://burnerconnect.burnerfactory.com/" target="_blank">Try out a wallet</a></div>';
-      panel.appendChild(emptyState);
-    } else {
-      const list = document.createElement('ul');
-      list.style.padding = '0';
-      populateList(wallets, list, (wallet: any) => resolve(wallet));
-      panel.appendChild(list);
-    }
-
-    const cancel = document.createElement('button');
-    cancel.innerHTML = 'Cancel';
-    cancel.style.fontSize = '14px';
-    cancel.addEventListener('click', () => reject());
-    panel.appendChild(cancel);
-  });
+  onClose(listener: any) {
+    this.closeListeners.push(listener);
+  }
 }

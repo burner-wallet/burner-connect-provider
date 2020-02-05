@@ -7,12 +7,6 @@ export default class HubBridge {
     this.url = url;
   }
 
-  async getWallets() {
-    await this.ensureIFrame();
-    const wallets = await this.send('getWallets') as any[];
-    return wallets;
-  }
-
   ensureIFrame() {
     if (this.iframe) {
       return Promise.resolve(this.iframe);
@@ -25,6 +19,31 @@ export default class HubBridge {
       this.iframe.addEventListener('load', () => resolve());
 
       document.body.appendChild(this.iframe);
+    });
+  }
+
+  getFrame() {
+    this.iframe = document.createElement('iframe');
+    this.iframe.src = `${this.url}/selector.html`;
+    this.iframe.style.border = 'none';
+
+    window.addEventListener('message', (e: any) => {
+      console.log(e.data);
+      if (e.data.message === 'setHeight') {
+        this.iframe.style.height = `${e.data.height}px`;
+      }
+    });
+
+    return this.iframe;
+  }
+
+  awaitSelection(): Promise<any> {
+    return new Promise((resolve) => {
+      window.addEventListener('message', (e: any) => {
+        if (e.data.message === 'walletSelected') {
+          resolve(e.data.wallet);
+        }
+      });
     });
   }
 
