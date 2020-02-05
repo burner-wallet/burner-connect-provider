@@ -14,15 +14,15 @@ export default class HubBridge {
     return response;
   }
 
-  ensureIFrame(parent?: HTMLElement, visible: boolean = false) {
+  ensureIFrame() {
     if (this.iframeLoadPromise) {
       return this.iframeLoadPromise;
     }
 
     this.iframeLoadPromise = new Promise((resolve) => {
       this.iframe = document.createElement('iframe');
-      this.iframe.src = `${this.origin}/burnerconnect.html`;
-      this.iframe.style.cssText = visible ? 'border:none' : 'height:0; width:0; border:none; position: absolute';
+      this.iframe.src = `${this.origin}/burnerconnect-bridge.html`;
+      this.iframe.style.cssText = 'height:0; width:0; border:none; position: absolute';
       // this.iframe.addEventListener('load', () => {console.log('loaded');resolve()});
       // this.iframe.sandbox = 'allow-storage-access-by-user-activation allow-scripts allow-same-origin';
 
@@ -34,18 +34,7 @@ export default class HubBridge {
       }
       window.addEventListener('message', loadListener);
 
-      if (visible) {
-        const resizeListener = (e: any) => {
-          if (e.data.message === 'setSize') {
-            this.iframe.style.height = `${e.data.height}px`;
-            // this.iframe.style.width = `${e.data.width}px`;
-          }
-        }
-        window.addEventListener('message', resizeListener);
-      }
-
-
-      (parent || document.body).appendChild(this.iframe);
+      document.body.appendChild(this.iframe);
     });
     return this.iframeLoadPromise;
   }

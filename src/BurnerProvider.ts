@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import HubBridge from './HubBridge';
 import WalletBridge from './WalletBridge';
+import WalletLogin from './WalletLogin';
 import WalletSelector from './WalletSelector';
 
 const id = () => (Math.random() * 100000000) | 0;
@@ -78,7 +79,13 @@ export default class BurnerProvider extends EventEmitter {
         this.walletSelector.showStarting();
         await this.showPrompt();
 
-        await this.maybeShowPopup();
+        if (await this.needsPopup()) {
+          await this.showPopup();
+        }
+
+        this.walletBridge = new WalletBridge(this.wallet.origin);
+        await this.walletBridge.ensureIFrame();
+
         this.getBridge().send({
           id: id(),
           method: 'eth_accounts',
@@ -101,26 +108,19 @@ export default class BurnerProvider extends EventEmitter {
     const wallet = await this.walletSelector.showSelector(this.hub, this.defaultWallets);
     this.walletSelector.showConnecting(wallet.name);
     this.wallet = wallet;
-    this.walletBridge = new WalletBridge(wallet.origin);
   }
 
-  async maybeShowPopup() {
-    const bridge = this.getBridge();
-    await bridge.ensureIFrame();
-    const requiresPopup = true;//await bridge.sendCommand('requiresPopup');
-    if (requiresPopup) {
-      bridge.remove();
+  async needsPopup() {
+    const login = new WalletLogin(this.wallet.origin);
+    const needsPopup = await login.needsPopup();
+    login.remove();
+    return needsPopup;
+  }
 
-      const tempBridge = new WalletBridge(this.wallet.origin);
-      await tempBridge.ensureIFrame(this.walletSelector.getPanel(), true);
-      console.log('showing');
-      await tempBridge.sendCommand('popup');
-      console.log('showed');
-      tempBridge.remove();
-
-      this.walletBridge = new WalletBridge(this.wallet.origin);
-      await this.walletBridge.ensureIFrame();
-    }
+  async showPopup() {
+    const login = new WalletLogin(this.wallet.origin);
+    await login.showPopup(this.walletSelector.getPanel());
+    login.remove();
   }
 
   send(method: string, params: any[] = []) {
